@@ -5,12 +5,10 @@ const EVownerSchema = new mongoose.Schema({
   name: { type: String,sparse: true },
   email: { type: String, required: true, lowercase: true, unique: true },
   password:{type:String, required:true},
-  phone: String,
-  vehicle: {
-    makeModel: String,
-    vehicleNumber: String,
-    batteryCapacity: Number
-  }
+  phone: {type: String, required: true, unique: true},
+  makeModel: String,
+  vehicleNumber: String,
+  batteryCapacity: String
 }, { timestamps: true });
 
 EVownerSchema.methods.matchPassword = async function (enteredPassword) {

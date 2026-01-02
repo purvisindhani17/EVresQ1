@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import "./auth.css"; // same theme file
+import { useEffect } from "react";
+import { useInfo } from "../context/InfoProvider";
 
 export default function Home() {
   const navigate = useNavigate();

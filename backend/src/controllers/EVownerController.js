@@ -86,5 +86,4 @@ const bookHomeCharger = asyncHandler(async (req, res) => {
 });
 
 
-
 module.exports={registeredUser,allUsers,getAllHosts,bookHomeCharger};

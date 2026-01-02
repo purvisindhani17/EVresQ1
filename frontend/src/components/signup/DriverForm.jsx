@@ -1,4 +1,8 @@
 import { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import {useInfo} from "../../context/InfoProvider";
+
 
 export default function DriverForm({ setRole }) {
   const [form, setForm] = useState({
@@ -6,22 +10,43 @@ export default function DriverForm({ setRole }) {
     email: "",
     password: "",
     phone: "",
-    license: "",
-    vehicle: "",
+    licenseNumber: "",
+    vehicleNumber: "",
+    preferredLocation: "",
   });
+  
+const navigate = useNavigate();
+const { login } = useInfo();
+
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Driver Signup Data:", form);
-  };
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const res = await axios.post(
+      "http://localhost:8000/api/driver/",
+      form
+    );
+
+    login({
+      token: res.data.token,
+      role: "driver",
+      id: res.data._id,
+    });
+
+    navigate("/driver/dashboard");
+  } catch (err) {
+    alert("Driver signup failed");
+  }
+};
+
 
   return (
-    <
-    >
+    <>
       {/* SINGLE WHITE BOX */}
       <form
         onSubmit={handleSubmit}
@@ -94,18 +119,26 @@ export default function DriverForm({ setRole }) {
           style={{ padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
         />
         <input
-          name="license"
+          name="licenseNumber"
           type="text"
           placeholder="License Number"
-          value={form.license}
+          value={form.licenseNumber}
           onChange={handleChange}
           style={{ padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
         />
         <input
-          name="vehicle"
+          name="vehicleNumber"
           type="text"
           placeholder="Vehicle Number"
-          value={form.vehicle}
+          value={form.vehicleNumber}
+          onChange={handleChange}
+          style={{ padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
+        />
+        <input
+          name="preferredLocation"
+          type="text"
+          placeholder="Preferred Location"
+          value={form.preferredLocation}
           onChange={handleChange}
           style={{ padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
         />

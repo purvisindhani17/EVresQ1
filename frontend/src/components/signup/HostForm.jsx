@@ -1,16 +1,48 @@
 import { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import {useInfo} from "../../context/InfoProvider";
+
 
 export default function HostForm({ setRole }) {
-  const [form, setForm] = useState({});
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+    location: "",
+    chargerType: "",
+    powerOutput: "",
+  });
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+  
+const navigate = useNavigate();
+const { login } = useInfo();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("HOST SUBMITTED:", form);
-  };
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const res = await axios.post(
+      "http://localhost:8000/api/host/",
+      form
+    );
+
+    login({
+      token: res.data.token,
+      role: "host",
+      id: res.data._id,
+    });
+
+    navigate("/host/dashboard");
+  } catch (err) {
+    alert("Host signup failed");
+  }
+};
+
 
   return (
     <

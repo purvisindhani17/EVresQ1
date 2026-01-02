@@ -1,20 +1,52 @@
 import { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import {useInfo} from "../../context/InfoProvider";
 
 export default function EVOwnerForm({ setRole }) {
-  const [form, setForm] = useState({});
+  const [form, setForm] = useState({
+  name: "",
+  email: "",
+  password: "",
+  phone: "",
+  makeModel: "",
+  vehicleNumber: "",
+  batteryCapacity: "", 
+});
+
+const navigate = useNavigate();
+const { login } = useInfo();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("EV OWNER:", form);
-  };
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+
+    const res = await axios.post(
+      "http://localhost:8000/api/EVowner",
+      form
+    );
+    console.log("EV OWNER SIGNUP RESPONSE:", res.data);
+    login({
+      id: res.data._id,
+      role: "EVowner",
+      token: res.data.token,
+    });
+
+    navigate("/EVowner/dashboard");
+  } catch (err) {
+    console.error(err);
+    alert(err.response?.data?.message || "EV Owner Signup failed");
+  }
+};
+
 
   return (
-    <
-    >
+    <>
       {/* SIMPLE MEDIUM WHITE BOX */}
       <form
         onSubmit={handleSubmit}
@@ -79,7 +111,7 @@ export default function EVOwnerForm({ setRole }) {
           style={{ padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
         />
         <input
-          name="vehicleModel"
+          name="makeModel"
           type="text"
           placeholder="Vehicle Model"
           onChange={handleChange}
@@ -94,7 +126,7 @@ export default function EVOwnerForm({ setRole }) {
         />
         <input
           name="batteryCapacity"
-          type="text"
+          type="number"
           placeholder="Battery Capacity (kWh)"
           onChange={handleChange}
           style={{ padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}

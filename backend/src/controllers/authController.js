@@ -6,7 +6,6 @@ const generateToken = require("../config/generateToken");
 
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-
   let user, role;
 
   user = await EVowner.findOne({ email });

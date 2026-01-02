@@ -2,25 +2,50 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./auth.css";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowLeft } from "react-icons/fa";
+import axios from "axios";
+import { useInfo } from "../context/InfoProvider";
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const { login } = useInfo();
 
-  const handleLogin = (e) => {
-    e.preventDefault();
+  const handleLogin = async (e) => {
+  e.preventDefault();
 
-    // basic validation
-    if (!email || !password) {
-      alert("Please fill all fields");
-      return;
+  if (!email || !password) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  try {
+    const res = await axios.post(
+      "http://localhost:8000/api/auth/login", // 🔴 backend login route
+      { email, password }
+    );
+
+    login({
+      token: res.data.token,
+      role: res.data.role,
+      id: res.data._id,
+    });
+
+    if (res.data.role === "EVowner") {
+      navigate("/EVowner/dashboard");
+    } else if (res.data.role === "host") {
+      navigate("/host/dashboard");
+    } else if (res.data.role === "driver") {
+      navigate("/driver/dashboard");
+    } else {
+      navigate("/");
     }
 
-    // backend ready -> later API call
-    console.log({ email, password });
-  };
+  } catch (err) {
+    alert(err.response?.data?.message || "Login failed");
+  }
+};
 
   return (
     <div className="auth-bg">

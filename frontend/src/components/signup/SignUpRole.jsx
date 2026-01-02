@@ -5,8 +5,6 @@ const SignUpRole = ({ setRole }) => {
   return (
     <>
       <>
-
-        {/* Home Button */}
         <button
   style={styles.backBtn}
   onClick={() => navigate("/")}
@@ -31,7 +29,7 @@ const SignUpRole = ({ setRole }) => {
               style={styles.registerBtn}
               onMouseOver={e => (e.target.style.transform = "scale(1.07)")}
               onMouseOut={e => (e.target.style.transform = "scale(1)")}
-              onClick={() => setRole("evOwner")}
+              onClick={() => setRole("EVowner")}
             >
               Register
             </button>
