@@ -1,6 +1,8 @@
 const asyncHandler=require('express-async-handler');
 const EVowner=require('../models/Evowner');
 const generateToken=require('../config/generateToken')
+const Host=require('../models/Host');
+const HomeChargerBooking = require('../models/HomeChargerBooking');
 
 const registeredUser=asyncHandler(async (req,res)=>{
       const {name,email,password,phone}=req.body;
@@ -54,4 +56,35 @@ const allUsers = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports={registeredUser,allUsers};
+const getAllHosts = asyncHandler(async (req, res) => {
+  const hosts = await Host.find().select("-password");
+
+  res.status(200).json(hosts);
+});
+
+const bookHomeCharger = asyncHandler(async (req, res) => {
+  console.log("REQ.USER 👉", req.user);
+  const { hostId, timeSlot, chargerType } = req.body;
+
+  if (!hostId || !timeSlot || !chargerType) {
+    res.status(400);
+    throw new Error("All fields are required");
+  }
+
+  const booking = await HomeChargerBooking.create({
+    EVowner: req.user.id,   // logged-in EV owner
+    host: hostId,            // selected host
+    timeSlot,
+    chargerType,
+    status: "requested"
+  });
+
+  res.status(201).json({
+    message: "Charging request sent successfully",
+    booking
+  });
+});
+
+
+
+module.exports={registeredUser,allUsers,getAllHosts,bookHomeCharger};

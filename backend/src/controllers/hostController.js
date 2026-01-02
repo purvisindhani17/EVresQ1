@@ -1,6 +1,8 @@
 const asyncHandler=require('express-async-handler');
 const Host=require('../models/Host');
-const generateToken=require('../config/generateToken')
+const generateToken=require('../config/generateToken');
+const HomeChargerBooking = require('../models/HomeChargerBooking');
+const mongoose= require('mongoose') ;
 
 const registeredUser=asyncHandler(async (req,res)=>{
       const {name,email,password,phone,location}=req.body;
@@ -55,4 +57,91 @@ const allUsers = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports={registeredUser,allUsers};
+const getAllRequests = async (req, res) => {
+  try {
+    const hostId = new mongoose.Types.ObjectId(req.user.id);
+    const requests = await HomeChargerBooking.find({
+      host: hostId,
+      status: { $nin: ["completed", "rejected"] }
+    }).populate("EVowner", "name email").sort({ createdAt: -1 });
+
+    console.log("HOST ID 👉", hostId);
+    console.log("REQUESTS FOUND 👉", requests);
+
+    res.status(200).json(requests);
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const approveRequest = async (req, res) => {
+  try {
+    const booking = await HomeChargerBooking.findById(req.params.id);
+
+    if (!booking)
+      return res.status(404).json({ message: "Booking not found" });
+    
+    if (booking.host.toString() !== req.user.id.toString()) {
+    res.status(403);
+    throw new Error("You are not allowed to approve this booking");
+    } 
+
+    booking.status = "approved";
+    await booking.save();
+
+    res.json({ message: "Charging request approved", booking });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const rejectRequest = async (req, res) => {
+  try {
+    const booking = await HomeChargerBooking.findById(req.params.id);
+    if (booking.host.toString() !== req.user.id.toString()) {
+    res.status(403);
+    throw new Error("You are not allowed to approve this booking");
+    }
+    booking.status = "rejected";
+    await booking.save();
+
+    res.json({ message: "Charging request rejected" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const startCharging = async (req, res) => {
+  try {
+    const booking = await HomeChargerBooking.findById(req.params.id);
+    if (booking.host.toString() !== req.user.id.toString()) {
+    res.status(403);
+    throw new Error("You are not allowed to approve this booking");
+    } 
+    booking.status = "charging";
+    await booking.save();
+
+    res.json({ message: "Charging started" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const completeCharging = async (req, res) => {
+  try {
+    const booking = await HomeChargerBooking.findById(req.params.id);
+    if (booking.host.toString() !== req.user.id.toString()) {
+    res.status(403);
+    throw new Error("You are not allowed to approve this booking");
+    }
+    booking.status = "completed";
+    await booking.save();
+
+    res.json({ message: "Charging completed successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports={registeredUser,allUsers,getAllRequests,approveRequest,rejectRequest,startCharging,completeCharging};
