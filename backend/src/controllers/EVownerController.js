@@ -71,6 +71,19 @@ const bookHomeCharger = asyncHandler(async (req, res) => {
     throw new Error("All fields are required");
   }
 
+  const existingBooking = await HomeChargerBooking.findOne({
+    EVowner: req.user.id,
+    host: hostId,
+    status: { $nin: ["completed", "rejected"] }
+  });
+
+  if (existingBooking) {
+    return res.status(400).json({
+      message: "You already have an active booking with this host",
+      status: existingBooking.status
+    });
+  }
+
   const booking = await HomeChargerBooking.create({
     EVowner: req.user.id,   // logged-in EV owner
     host: hostId,            // selected host
@@ -85,5 +98,14 @@ const bookHomeCharger = asyncHandler(async (req, res) => {
   });
 });
 
+const getMyBookingForHost = asyncHandler(async (req, res) => {
+  const booking = await HomeChargerBooking.findOne({
+    EVowner: req.user.id,
+    host: req.params.hostId,
+    status: { $nin: ["rejected"] }
+  }).sort({ createdAt: -1 });
 
-module.exports={registeredUser,allUsers,getAllHosts,bookHomeCharger};
+  res.json(booking || null);
+});
+
+module.exports={registeredUser,allUsers,getAllHosts,bookHomeCharger,getMyBookingForHost};

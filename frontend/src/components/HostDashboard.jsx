@@ -8,7 +8,6 @@ export default function HostDashboard() {
     const fetchRequests = async () => {
       try {
         const token = localStorage.getItem("token");
-
         const res = await fetch(
           "http://localhost:8000/api/host/dashboard",
           {
@@ -17,9 +16,9 @@ export default function HostDashboard() {
             },
           }
         );
-
         const data = await res.json();
-        setRequests(data.requests || []);
+        setRequests(data || []);
+
       } catch (err) {
         console.error(err);
       }
@@ -33,34 +32,41 @@ export default function HostDashboard() {
   }, []);
 
   const handleResponse = async (requestId, action) => {
-    try {
-      const token = localStorage.getItem("token");
+  try {
+    const token = localStorage.getItem("token");
 
-      const res = await fetch(
-        `http://localhost:8000/api/requests/${requestId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ status: action }),
-        }
-      );
+    let endpoint = "";
 
-      if (!res.ok) throw new Error("Failed to update request");
+    if (action === "approved") endpoint = "approve";
+    if (action === "rejected") endpoint = "reject";
+    if (action === "charging") endpoint = "start";
+    if (action === "completed") endpoint = "complete";
 
-      // update locally
-      setRequests((prev) =>
-        prev.map((r) =>
-          r._id === requestId ? { ...r, status: action } : r
-        )
-      );
-    } catch (err) {
-      console.error(err);
-      alert("Error updating request");
-    }
-  };
+    const res = await fetch(
+      `http://localhost:8000/api/host/${endpoint}/${requestId}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+
+    // update UI
+    setRequests((prev) =>
+      prev.map((r) =>
+        r._id === requestId ? { ...r, status: action } : r
+      )
+    );
+  } catch (err) {
+    console.error(err);
+    alert(err.message || "Error updating request");
+  }
+};
+
 
   return (
     <div className="host-dashboard">
@@ -82,29 +88,48 @@ export default function HostDashboard() {
               <div className="req-avatar">🚗</div>
 
               <div className="req-info">
-                <h3>{req.evOwnerName}</h3>
-                <p><b>Email:</b> {req.evOwnerEmail}</p>
-                <p><b>Location:</b> {req.location}</p>
-                <p><b>Status:</b> {req.status || "pending"}</p>
+  <h3>{req.EVowner?.name || "EV Owner"}</h3>
+  <p><b>Email:</b> {req.EVowner?.email || "N/A"}</p>
+  <p><b>Location:</b> {req.location || "N/A"}</p>
+  <p><b>Status:</b> {req.status}</p>
 
                 <div className="req-actions">
-                  {req.status === "pending" && (
-                    <>
-                      <button
-                        className="accept-btn"
-                        onClick={() => handleResponse(req._id, "accepted")}
-                      >
-                        Accept
-                      </button>
-                      <button
-                        className="reject-btn"
-                        onClick={() => handleResponse(req._id, "rejected")}
-                      >
-                        Reject
-                      </button>
-                    </>
-                  )}
-                </div>
+  {req.status === "requested" && (
+    <>
+      <button
+        className="accept-btn"
+        onClick={() => handleResponse(req._id, "approved")}
+      >
+        Accept
+      </button>
+      <button
+        className="reject-btn"
+        onClick={() => handleResponse(req._id, "rejected")}
+      >
+        Reject
+      </button>
+    </>
+  )}
+
+  {req.status === "approved" && (
+    <button
+      className="start-btn"
+      onClick={() => handleResponse(req._id, "charging")}
+    >
+      Start Charging
+    </button>
+  )}
+
+  {req.status === "charging" && (
+    <button
+      className="complete-btn"
+      onClick={() => handleResponse(req._id, "completed")}
+    >
+      Complete Charging
+    </button>
+  )}
+</div>
+
               </div>
             </div>
           ))

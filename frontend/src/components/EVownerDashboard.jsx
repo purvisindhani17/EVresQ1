@@ -4,37 +4,54 @@ import "./EVownerDashboard.css";
 export default function EVownerDashboard() {
   const [hosts, setHosts] = useState([]);
   const [showHosts, setShowHosts] = useState(false);
+  const [bookingStatus, setBookingStatus] = useState({});
+
 
   useEffect(() => {
-    if (!showHosts) return;
+  if (!showHosts) return;
 
-    const fetchHosts = async () => {
-      try {
-        const token = localStorage.getItem("token");
+  const fetchHostsAndStatus = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-        const res = await fetch("http://localhost:8000/api/host", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+      const res = await fetch("http://localhost:8000/api/EVowner/hosts", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const hostsData = await res.json();
+      setHosts(hostsData);
 
-        const data = await res.json();
-        setHosts(data.users || data);
-      } catch (err) {
-        console.error(err);
+      const statusMap = {};
+
+      for (let host of hostsData) {
+        const r = await fetch(
+          `http://localhost:8000/api/EVowner/my-booking/${host._id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        const booking = await r.json();
+        if (booking) statusMap[host._id] = booking.status;
       }
-    };
 
-    fetchHosts();
-  }, [showHosts]);
+      setBookingStatus(statusMap);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchHostsAndStatus();
+
+  const interval = setInterval(fetchHostsAndStatus, 5000);
+  return () => clearInterval(interval);
+
+}, [showHosts]);
+
 
   const handleRequestCharging = async (host) => {
     try {
       const token = localStorage.getItem("token");
       const evOwnerName = localStorage.getItem("name") || "EV Owner";
       const evOwnerEmail = localStorage.getItem("email") || "owner@example.com";
-
-      const res = await fetch("http://localhost:8000/api/requests", {
+      const res = await fetch("http://localhost:8000/api/EVowner/book-home-charger", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -42,15 +59,23 @@ export default function EVownerDashboard() {
         },
         body: JSON.stringify({
           hostId: host._id,
-          evOwnerName,
-          evOwnerEmail,
-          location: host.location || "Unknown",
+          chargerType: "fast", // or "fast", could be made dynamic
+          timeSlot: "2024-07-01T10:00:00Z", // example time slot, could be made dynamic
+          status: "requested"
         }),
       });
+      const data = await res.json();
+console.log("STATUS:", res.status);
+console.log("RESPONSE:", data);
 
       if (!res.ok) throw new Error("Failed to send request");
+      setBookingStatus(prev => ({
+  ...prev,
+  [host._id]: "requested"
+}));
 
       alert(`Charging request sent to ${host.name}`);
+
     } catch (err) {
       console.error(err);
       alert("Error sending request");
@@ -86,27 +111,37 @@ export default function EVownerDashboard() {
 
           <div className="host-grid">
             {hosts.length === 0 ? (
-              <p className="no-hosts">No hosts available</p>
-            ) : (
-              hosts.map((host) => (
-                <div className="host-card big-card" key={host._id}>
-                  <div className="host-avatar">🧑‍💼</div>
+  <p className="no-hosts">No hosts available</p>
+) : (
+  hosts.map((host) => {
+    const status = bookingStatus[host._id];
 
-                  <div className="host-info">
-                    <h3>{host.name || "Host Name"}</h3>
-                    <p><b>Email:</b> {host.email}</p>
-                    <p><b>Location:</b> {host.location || "Not provided"}</p>
+    return (
+      <div className="host-card big-card" key={host._id}>
+        <div className="host-avatar">🧑‍💼</div>
 
-                    <button
-                      className="request-btn"
-                      onClick={() => handleRequestCharging(host)}
-                    >
-                      Request Charging
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
+        <div className="host-info">
+          <h3>{host.name || "Host Name"}</h3>
+          <p><b>Email:</b> {host.email}</p>
+          <p><b>Location:</b> {host.location || "Not provided"}</p>
+
+          <button
+            className="request-btn"
+            disabled={status && status !== "rejected"}
+            onClick={() => handleRequestCharging(host)}
+          >
+            {!status && "Request Charging"}
+            {status === "requested" && "Requested"}
+            {status === "approved" && "Approved"}
+            {status === "charging" && "Charging..."}
+            {status === "completed" && "Charging Completed"}
+          </button>
+        </div>
+      </div>
+    );
+  })
+)}
+             
           </div>
         </>
       )}
