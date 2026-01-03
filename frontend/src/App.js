@@ -6,6 +6,8 @@ import RouteDecider from "./components/RouteDecider";
 import EVownerDashboard from "./components/EVownerDashboard";
 import HostDashboard from "./components/HostDashboard";
 import DriverDashboard from "./components/DriverDashboard";
+import ProfileOfHost from "./components/ProfileOfHost";
+import ProfileOfEVowner from "./components/ProfileOfEVowner";
 
 function App() {
   return (
@@ -18,6 +20,9 @@ function App() {
         <Route path="/EVowner/dashboard" element={<EVownerDashboard />} />
         <Route path="/host/dashboard" element={<HostDashboard />} />
         <Route path="/driver/dashboard" element={<DriverDashboard />} />
+        <Route path="/host/evowner/:bookingId" element={<ProfileOfEVowner />} />
+<Route path="/ev/host/:hostId" element={<ProfileOfHost />} />
+
       </Routes>
     </BrowserRouter>
   );

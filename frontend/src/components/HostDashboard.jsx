@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import "./HostDashboard.css";
+import { useNavigate } from "react-router-dom";
 
 export default function HostDashboard() {
   const [requests, setRequests] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -67,7 +69,6 @@ export default function HostDashboard() {
   }
 };
 
-
   return (
     <div className="host-dashboard">
       {/* HEADER */}
@@ -84,7 +85,7 @@ export default function HostDashboard() {
           <p className="no-req">No requests yet</p>
         ) : (
           requests.map((req) => (
-            <div className="req-card" key={req._id}>
+            <div className="req-card" key={req._id} onClick={() => navigate(`/host/evowner/${req._id}`)}>
               <div className="req-avatar">🚗</div>
 
               <div className="req-info">
@@ -98,13 +99,19 @@ export default function HostDashboard() {
     <>
       <button
         className="accept-btn"
-        onClick={() => handleResponse(req._id, "approved")}
+        onClick={(e) => {
+    e.stopPropagation();
+    handleResponse(req._id, "approved");
+  }}
       >
         Accept
       </button>
       <button
         className="reject-btn"
-        onClick={() => handleResponse(req._id, "rejected")}
+        onClick={(e) => {
+    e.stopPropagation();
+    handleResponse(req._id, "rejected");
+  }}
       >
         Reject
       </button>
@@ -114,7 +121,10 @@ export default function HostDashboard() {
   {req.status === "approved" && (
     <button
       className="start-btn"
-      onClick={() => handleResponse(req._id, "charging")}
+      onClick={(e) => {
+    e.stopPropagation();
+    handleResponse(req._id, "charging");
+  }}
     >
       Start Charging
     </button>
@@ -123,7 +133,10 @@ export default function HostDashboard() {
   {req.status === "charging" && (
     <button
       className="complete-btn"
-      onClick={() => handleResponse(req._id, "completed")}
+      onClick={(e) => {
+    e.stopPropagation();
+    handleResponse(req._id, "completed");
+  }}
     >
       Complete Charging
     </button>

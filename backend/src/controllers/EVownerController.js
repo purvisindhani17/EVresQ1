@@ -108,4 +108,18 @@ const getMyBookingForHost = asyncHandler(async (req, res) => {
   res.json(booking || null);
 });
 
-module.exports={registeredUser,allUsers,getAllHosts,bookHomeCharger,getMyBookingForHost};
+const getHostById = asyncHandler(async (req, res) => {
+  try {
+    const host = await Host.findById(req.params.hostId).select("-password");
+    if (!host) {
+      res.status(404);
+      throw new Error("Host not found");
+    }
+    res.json(host);
+  }
+  catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+module.exports={registeredUser,allUsers,getAllHosts,bookHomeCharger,getMyBookingForHost,getHostById};

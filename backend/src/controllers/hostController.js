@@ -144,4 +144,25 @@ const completeCharging = async (req, res) => {
   }
 };
 
-module.exports={registeredUser,allUsers,getAllRequests,approveRequest,rejectRequest,startCharging,completeCharging};
+const getBookingById = async (req, res) => {
+  try {
+    const booking = await HomeChargerBooking.findById(req.params.id)
+      .populate("EVowner", "name email phone")
+      .populate("host", "name location");
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    // security check
+    if (booking.host._id.toString() !== req.user.id.toString()) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    res.json(booking);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports={registeredUser,allUsers,getAllRequests,approveRequest,rejectRequest,startCharging,completeCharging,getBookingById};

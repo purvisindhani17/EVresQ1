@@ -2,6 +2,7 @@ const express= require('express');
 const router=express.Router()
 const {registeredUser,allUsers,getAllHosts,bookHomeCharger,getMyBookingForHost} = require('../controllers/EVownerController')
 const {protect}=require('../middleware/authMiddleware')
+const {getHostById}=require('../controllers/EVownerController')
 
 router.route('/').post(registeredUser).get(protect,allUsers);
 router.get('/hosts', protect, getAllHosts);
@@ -11,5 +12,6 @@ router.get(
   protect,   // EV owner auth
   getMyBookingForHost
 );
+router.get("/:hostId", protect, getHostById); // dynamic route last
 
 module.exports=router;

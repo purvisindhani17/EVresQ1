@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState} from "react";
+import { useNavigate } from "react-router-dom";
+
 import "./EVownerDashboard.css";
 
 export default function EVownerDashboard() {
   const [hosts, setHosts] = useState([]);
   const [showHosts, setShowHosts] = useState(false);
   const [bookingStatus, setBookingStatus] = useState({});
-
+  const navigate = useNavigate();
 
   useEffect(() => {
   if (!showHosts) return;
@@ -117,7 +119,7 @@ console.log("RESPONSE:", data);
     const status = bookingStatus[host._id];
 
     return (
-      <div className="host-card big-card" key={host._id}>
+      <div className="host-card big-card" key={host._id}  onClick={() => navigate(`/ev/host/${host._id}`)}>
         <div className="host-avatar">🧑‍💼</div>
 
         <div className="host-info">
@@ -128,7 +130,10 @@ console.log("RESPONSE:", data);
           <button
             className="request-btn"
             disabled={status && status !== "rejected"}
-            onClick={() => handleRequestCharging(host)}
+            onClick={(e) => {
+    e.stopPropagation();
+    handleRequestCharging(host);
+  }}
           >
             {!status && "Request Charging"}
             {status === "requested" && "Requested"}
