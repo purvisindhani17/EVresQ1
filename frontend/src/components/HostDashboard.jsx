@@ -117,8 +117,7 @@ export default function HostDashboard() {
           requests.map((req) => (
             <div
               className="req-card"
-              key={req._id}
-              onClick={() => navigate(`/host/evowner/${req._id}`)}
+              
             >
               <div className="req-avatar">🚗</div>
 
@@ -128,57 +127,17 @@ export default function HostDashboard() {
                   <b>Email:</b> {req.EVowner?.email || "N/A"}
                 </p>
                 <p>
-                  <b>Location:</b> {req.location || "N/A"}
+                  <b>Latitude:</b> {req.latitude || "N/A"}
+                </p>
+                <p>
+                  <b>Longitude:</b> {req.longitude || "N/A"}
                 </p>
                 <p>
                   <b>Status:</b> {req.status}
                 </p>
-
-                <div className="req-actions">
-                  {req.status === "requested" && (
-                    <>
-                      <button
-                        className="accept-btn"
-                        onClick={(e) => handleAccept(req, e)}
-                      >
-                        Accept
-                      </button>
-                      <button
-                        className="reject-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleResponse(req._id, "rejected");
-                        }}
-                      >
-                        Reject
-                      </button>
-                    </>
-                  )}
-
-                  {req.status === "approved" && (
-                    <button
-                      className="start-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleResponse(req._id, "charging");
-                      }}
-                    >
-                      Start Charging
-                    </button>
-                  )}
-
-                  {req.status === "charging" && (
-                    <button
-                      className="complete-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleResponse(req._id, "completed");
-                      }}
-                    >
-                      Complete Charging
-                    </button>
-                  )}
-                </div>
+                <button key={req._id}  onClick={() => navigate(`/host/evowner/${req._id}`)}>
+                  View Profile
+                </button>
               </div>
             </div>
           ))

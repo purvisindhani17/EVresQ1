@@ -54,7 +54,6 @@ export default function EVownerDashboard() {
     return () => clearInterval(interval);
   }, [showHosts]);
 
-
 const handleRequestCharging = (host) => {
     if (!navigator.geolocation) {
       alert("Location not supported");
@@ -293,12 +292,14 @@ useEffect(() => {
               hosts.map((host) => {
                 const booking = bookingStatus[host._id];
                 const status = booking?.status;
+                const disableRequest =
+  status === "requested" ||
+  status === "approved" ||
+  status === "charging";
 
                 return (
                   <div
                     className="host-card big-card"
-                    key={host._id}
-                    onClick={() => navigate(`/ev/host/${host._id}`)}
                   >
                     <div className="host-avatar">🧑‍💼</div>
 
@@ -307,9 +308,10 @@ useEffect(() => {
                       <p><b>Email:</b> {host.email}</p>
                       <p><b>Location:</b> {host.location || "Not provided"}</p>
 
+
                       <button
                         className="request-btn"
-                        disabled={status && status !== "rejected"}
+                        disabled={disableRequest}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleRequestCharging(host);
@@ -319,8 +321,12 @@ useEffect(() => {
                         {status === "requested" && "Requested"}
                         {status === "approved" && "Approved"}
                         {status === "charging" && "Charging..."}
-                        {status === "completed" && "Charging Completed"}
+                        {status === "completed" && "Request Again"}
+                        
                       </button>
+                      <br></br>
+                      <button key={host._id} className="request-btn"
+                    onClick={() => navigate(`/ev/host/${host._id}`)}>View Profile</button>
                     </div>
                   </div>
                 );

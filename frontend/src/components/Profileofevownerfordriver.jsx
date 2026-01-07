@@ -61,8 +61,17 @@ export default function Profileofevownerfordriver() {
     setStatus(newStatus);
 
     if (newStatus === "completed") {
-      setTimeout(() => navigate("/driver/dashboard"), 1500);
+    // ✅ DELETE booking on backend after completion
+    try {
+        await axios.delete(
+            `http://localhost:8000/api/driver/delete-booking/${bookingId}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setTimeout(() => navigate("/driver/dashboard"), 1500);
+    } catch (err) {
+        console.error("Delete failed:", err.response?.data || err.message);
     }
+  }
   };
 
   if (!owner) return <p>Loading EV Owner...</p>;

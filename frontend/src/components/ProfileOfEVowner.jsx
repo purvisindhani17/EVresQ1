@@ -90,7 +90,9 @@ export default function ProfileOfEVowner() {
         </div>
 
         <div style={styles.locationBox}>
-          <b>Location:</b> {location?.location || "Fetching..."}
+          <b>Location:</b> {location
+    ? `${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}`
+    : "Fetching..."}
         </div>
       </div>
 

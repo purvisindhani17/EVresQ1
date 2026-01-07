@@ -144,9 +144,32 @@ const getownerById = asyncHandler(async (req, res) => {
   });
 });
 
+// Complete trip and delete booking
+const completeBooking = async (req, res) => {
+  const { bookingId } = req.params;
+
+  try {
+    const booking = await DriverBooking.findById(bookingId);
+
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    // Mark completed first (optional)
+    booking.status = "completed";
+    await booking.save();
+
+    // Then delete booking from DB
+    await DriverBooking.findByIdAndDelete(bookingId);
+
+    res.status(200).json({ message: "Trip completed and booking removed" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 
 module.exports={registeredUser,allUsers, getAllDriverRequests,
   acceptDriverRequest,
   rejectDriverRequest,
   startTrip,
-  completeTrip,getownerById};
+  completeTrip,getownerById,completeBooking};

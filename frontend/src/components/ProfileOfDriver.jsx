@@ -1,26 +1,91 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
 import MapView3 from "./MapView";
+import { useNavigate } from "react-router-dom";
 
 export default function ProfileOfDriver() {
   const { state } = useLocation();
+  const { driverId } = useParams();
+  const [tripStatus, setTripStatus] = useState("");
+  const [redirected, setRedirected] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (tripStatus === "completed" && !redirected) {
+      setRedirected(true);
+      setTimeout(() => {
+        navigate("/evowner/dashboard", { replace: true });
+      }, 3000); // 3 seconds to let them see the "Success" message
+    }
+  }, [tripStatus, redirected, navigate]);
+  
+/* ================== UPDATED FETCH LOGIC ================== */
+useEffect(() => {
+  if (redirected) return;
+  const token = localStorage.getItem("token");
+
+  const fetchTripStatus = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/EVowner/my-driver-booking/${driverId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // 1. If the driver deleted the record, the status might be 404
+      if (res.status === 404) {
+        console.log("Booking record deleted by driver, marking as completed.");
+        setTripStatus("completed");
+        return;
+      }
+
+      const booking = await res.json();
+
+      // 2. If the response is empty or status is missing, assume it's done
+      if (!booking || Object.keys(booking).length === 0) {
+        setTripStatus("completed");
+      } else if (booking.status) {
+        setTripStatus(booking.status);
+      }
+      
+    } catch (err) {
+      // 3. If the fetch fails entirely (e.g. server error because record is gone)
+      console.error("Trip record no longer exists:", err);
+      setTripStatus("completed");
+    }
+  };
+
+  fetchTripStatus();
+  const interval = setInterval(fetchTripStatus, 4000); // Polling slightly faster
+
+  return () => clearInterval(interval);
+}, [driverId, redirected]);
+
 
   if (!state) return <p>No driver assigned</p>;
 
-  const { driver, status } = state;
-
   const statusMap = {
-    on_the_way: {
-      text: "🚐 Driver is on the way",
-      style: styles.charging,
-    },
-    completed: {
-      text: "✅ Trip completed",
-      style: styles.completed,
-    },
-  };
+  accepted: {
+    text: "✔ Driver Approved",
+    style: styles.charging,
+  },
+  on_the_way: {
+    text: "🚐 Driver is on the way",
+    style: styles.charging,
+  },
+  completed: {
+    text: "✅ Trip completed",
+    style: styles.completed,
+  },
+};
 
-  const statusUI = statusMap[status];
+  const { driver } = state;
+const statusUI = statusMap[tripStatus] || {
+  text: "⏳ Waiting...",
+  style: styles.charging,
+};
 
   return (
     <div style={styles.page}>

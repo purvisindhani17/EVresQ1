@@ -2,7 +2,7 @@ const express= require('express');
 const router=express.Router()
 const {registeredUser,allUsers,getAllHosts,bookHomeCharger,getMyBookingForHost} = require('../controllers/EVownerController')
 const {protect}=require('../middleware/authMiddleware')
-const {getHostById,updateBookingLocation, bookingloocation,requestDriver, getMyDriverRequest,getDriverById,updateBookingLocationforDriver,bookingloocationfordriver}=require('../controllers/EVownerController')
+const {getHostById,updateBookingLocation, bookingloocation,requestDriver, getMyDriverRequest,getDriverById,updateBookingLocationforDriver,bookingloocationfordriver,getMyBookingForDriver}=require('../controllers/EVownerController')
 
 router.route('/').post(registeredUser).get(protect,allUsers);
 router.get('/hosts', protect, getAllHosts);
@@ -20,7 +20,11 @@ router.get("/my-driver-request", protect, getMyDriverRequest);
 router.get("/driver/:driverId", protect, getDriverById);
 router.post("/update-location-for-driver/:bookingId", protect, updateBookingLocationforDriver);
 router.get("/booking-location-for-driver/:bookingId", protect, bookingloocationfordriver);
-
+router.get(
+  "/my-driver-booking/:driverId",
+  protect,   // EV owner auth
+  getMyBookingForDriver
+);
 router.get("/:hostId", protect, getHostById); // dynamic route last
 
 module.exports=router;

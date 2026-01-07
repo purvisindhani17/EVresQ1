@@ -112,6 +112,17 @@ const getMyBookingForHost = asyncHandler(async (req, res) => {
   res.json(booking || null);
 });
 
+const getMyBookingForDriver = asyncHandler(async (req, res) => {
+  const booking = await DriverBooking.findOne({
+    EVowner: req.user.id,
+    driver: req.params.driverId,
+    status: { $in: ["accepted", "on_the_way", "completed"] },
+  }).sort({ updatedAt: -1 });
+
+  res.json(booking || null);
+});
+
+
 const getHostById = asyncHandler(async (req, res) => {
   try {
     const host = await Host.findById(req.params.hostId).select("-password");
@@ -128,7 +139,6 @@ const getHostById = asyncHandler(async (req, res) => {
 
 const updateBookingLocation = asyncHandler(async (req, res) => {
   const { latitude, longitude } = req.body;
-  console.log("Updating location for booking:", req.params.bookingId, latitude, longitude);
   await HomeChargerBooking.findByIdAndUpdate(req.params.bookingId, {
     latitude,
     longitude,
@@ -152,7 +162,7 @@ const requestDriver = asyncHandler(async (req, res) => {
 
   const existing = await DriverBooking.findOne({
     EVowner: req.user.id,
-    status: { $nin: ["completed", "rejected","on_the_way"] },
+    status: { $nin: ["requested","rejected", "on_the_way"] },
   });
 
   if (existing) {
@@ -195,7 +205,6 @@ const getDriverById = asyncHandler(async (req, res) => {
 
 const updateBookingLocationforDriver = asyncHandler(async (req, res) => {
   const { latitude, longitude } = req.body;
-  console.log("Updating location for booking:", req.params.bookingId, latitude, longitude);
   await DriverBooking.findByIdAndUpdate(
   req.params.bookingId,
   {
@@ -219,4 +228,6 @@ const bookingloocationfordriver = asyncHandler(async (req, res) => {
   res.json(booking);
 });
 
-module.exports={registeredUser,allUsers,getAllHosts,bookHomeCharger,getMyBookingForHost,getHostById,updateBookingLocation, bookingloocation,requestDriver,getMyDriverRequest,getDriverById,updateBookingLocationforDriver,bookingloocationfordriver};
+
+
+module.exports={registeredUser,allUsers,getAllHosts,bookHomeCharger,getMyBookingForHost,getHostById,updateBookingLocation, bookingloocation,requestDriver,getMyDriverRequest,getDriverById,updateBookingLocationforDriver,bookingloocationfordriver,getMyBookingForDriver};

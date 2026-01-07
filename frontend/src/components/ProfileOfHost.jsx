@@ -5,7 +5,33 @@ import MapView2 from "./MapView2";
 export default function ProfileOfHost() {
   const { hostId } = useParams();
   const [host, setHost] = useState(null);
-  const [bookingStatus, setBookingStatus] = useState("pending");
+  const [bookingStatus, setBookingStatus] = useState({});
+
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+
+  const fetchBookingStatus = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/EVowner/my-booking/${hostId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const booking = await res.json();
+      if (booking?.status) {
+        setBookingStatus(booking.status);
+      }
+    } catch (err) {
+      console.error("Booking status fetch failed", err);
+    }
+  };
+
+  fetchBookingStatus();
+  const interval = setInterval(fetchBookingStatus, 5000);
+
+  return () => clearInterval(interval);
+}, [hostId]);
+
 
   useEffect(() => {
     const token = localStorage.getItem("token");
