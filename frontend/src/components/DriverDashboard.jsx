@@ -29,10 +29,19 @@ export default function DriverDashboard() {
 
       
       res.data?.forEach((r) => {
-        if (r.pickupLocation?.latitude && r.pickupLocation?.longitude) {
-          callML(r._id, r.pickupLocation.latitude, r.pickupLocation.longitude);
-        }
-      });
+      if (
+        r.pickupLocation?.latitude &&
+        r.pickupLocation?.longitude &&
+        !mlResults[r._id]   // ✅ prevent duplicate ML calls
+      ) {
+        callML(
+         r._id,
+          Number(r.pickupLocation.latitude),
+          Number(r.pickupLocation.longitude)
+      );
+     }
+    });
+
 
     } catch (err) {
       console.error(err);
@@ -47,6 +56,9 @@ export default function DriverDashboard() {
         {
           ev_lat: lat,
           ev_lon: lon,
+        },
+         {
+        timeout: 5000, // ✅ prevents UI freeze
         }
       );
 
@@ -116,6 +128,11 @@ export default function DriverDashboard() {
                         <p>
                           <b>ML Status:</b> {ml.status}
                         </p>
+                          {ml?.status === "INVALID_LOCATION" && (
+                            <p style={{ color: "red" }}>
+                              ❌ Invalid pickup location
+                                    </p>
+                          )}
 
                         {ml.status === "DRIVER_ASSIGNED" && (
                           <>
