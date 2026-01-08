@@ -121,6 +121,12 @@ def assign_driver_to_ev(ev_lat, ev_lon):
 
 
 def rescue_request(ev_lat, ev_lon):
+    try:
+        ev_lat = float(ev_lat)
+        ev_lon = float(ev_lon)
+    except (TypeError, ValueError):
+        return {"status": "INVALID_LOCATION"}
+
     if not validate_input(ev_lat, ev_lon):
         return {"status": "INVALID_LOCATION"}
 
