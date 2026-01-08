@@ -32,7 +32,7 @@ def rescue():
     if not data:
         return jsonify({"status": "ERROR", "message": "JSON body required"}), 400
 
-    ev_lat = data.get("ev_lat")
+    ev_lat = data.get("ev_lat") or data.get("latitude")
     ev_lon = data.get("ev_lon")
 
     result = rescue_request(ev_lat, ev_lon)
